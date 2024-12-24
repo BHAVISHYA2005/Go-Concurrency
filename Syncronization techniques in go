@@ -1,1 +1,156 @@
+## Synchronization Techniques in Go: WaitGroups and Mutexes
+
+While goroutines and channels handle communication and concurrency, Go provides additional synchronization primitives like `sync.WaitGroup` and `sync.Mutex` to manage shared resources and coordinate goroutines.
+
+### WaitGroups
+
+A `sync.WaitGroup` is used to wait for a collection of goroutines to finish. It provides three methods:
+
+*   `Add(delta int)`: Increments the counter by `delta`.
+*   `Done()`: Decrements the counter by 1.
+*   `Wait()`: Blocks until the counter is zero.
+
+```go
+package main
+
+import (
+        "fmt"
+        "sync"
+        "time"
+)
+
+func worker(id int, wg *sync.WaitGroup) {
+        defer wg.Done() // Decrement the counter when the goroutine finishes
+        fmt.Printf("Worker %d starting\n", id)
+        time.Sleep(time.Second) // Simulate some work
+        fmt.Printf("Worker %d done\n", id)
+}
+
+func main() {
+        var wg sync.WaitGroup
+
+        for i := 1; i <= 3; i++ {
+                wg.Add(1)      // Increment the counter for each goroutine
+                go worker(i, &wg) // Launch the goroutine
+        }
+
+        wg.Wait() // Wait for all goroutines to finish
+        fmt.Println("All workers done")
+}
+
+```
+
+In this example, the `WaitGroup` ensures that the main function waits for all three worker goroutines to complete before printing "All workers done." The `defer wg.Done()` is crucial; it guarantees that the counter is decremented even if the worker function panics.
+
+### Mutexes
+
+A `sync.Mutex` (mutual exclusion) is used to protect shared resources from concurrent access. It provides two methods:
+
+*   `Lock()`: Locks the mutex. Only one goroutine can hold the lock at a time.
+*   `Unlock()`: Unlocks the mutex, allowing other goroutines to acquire the lock.
+
+```go
+package main
+
+import (
+        "fmt"
+        "sync"
+        "time"
+)
+
+var counter int
+var mutex sync.Mutex
+
+func increment() {
+        mutex.Lock()   // Acquire the lock
+        counter++
+        mutex.Unlock() // Release the lock
+}
+
+func main() {
+        var wg sync.WaitGroup
+
+        for i := 0; i < 1000; i++ {
+                wg.Add(1)
+                go func() {
+                        defer wg.Done()
+                        increment()
+                }()
+        }
+
+        wg.Wait()
+        fmt.Println("Counter:", counter)
+}
+
+```
+
+Without the mutex, this code would have a race condition, and the final value of `counter` would be unpredictable. The mutex ensures that only one goroutine can access and modify `counter` at a time, preventing data corruption.
+
+### RWMutex (Read/Write Mutex)
+
+A `sync.RWMutex` provides more fine-grained control over shared resources by distinguishing between read and write operations. It provides the following methods:
+
+*   `RLock()`: Acquires a read lock. Multiple goroutines can hold a read lock simultaneously.
+*   `RUnlock()`: Releases a read lock.
+*   `Lock()`: Acquires a write lock. Only one goroutine can hold a write lock.
+*   `Unlock()`: Releases a write lock.
+
+```go
+package main
+
+import (
+        "fmt"
+        "sync"
+        "time"
+)
+
+var data int
+var rwMutex sync.RWMutex
+
+func readData() {
+        rwMutex.RLock() // Acquire a read lock
+        fmt.Println("Reading data:", data)
+        time.Sleep(100 * time.Millisecond) // Simulate reading
+        rwMutex.RUnlock() // Release the read lock
+}
+
+func writeData(value int) {
+        rwMutex.Lock() // Acquire a write lock
+        fmt.Println("Writing data:", value)
+        data = value
+        time.Sleep(100 * time.Millisecond) // Simulate writing
+        rwMutex.Unlock() // Release the write lock
+}
+
+func main() {
+        var wg sync.WaitGroup
+
+        for i := 0; i < 5; i++ { //Multiple readers
+                wg.Add(1)
+                go func() {
+                        defer wg.Done()
+                        readData()
+                }()
+        }
+
+        wg.Add(1) //Single writer
+        go func() {
+                defer wg.Done()
+                writeData(100)
+        }()
+
+        wg.Wait()
+}
+
+```
+
+`RWMutex` is useful when you have many read operations and relatively few write operations. It allows multiple readers to access the data concurrently, improving performance.
+
+### Important Considerations:
+
+*   **Deadlocks:** Be careful to avoid deadlocks, which occur when two or more goroutines are blocked indefinitely, waiting for each other.
+*   **Race Conditions:** Ensure proper synchronization to prevent race conditions, which occur when multiple goroutines access and modify shared data concurrently, leading to unpredictable results.
+*   **Defer for Unlocking:** Always use `defer mutex.Unlock()` and `defer rwMutex.RUnlock()` after acquiring a lock to ensure that the lock is released even if the function panics. This prevents deadlocks.
+
+By using `sync.WaitGroup`, `sync.Mutex`, and `sync.RWMutex` effectively, you can write robust and efficient concurrent programs in Go that safely manage shared resources and coordinate goroutines.
 
