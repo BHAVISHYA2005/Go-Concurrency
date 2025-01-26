@@ -1,0 +1,91 @@
+markdown
+# Interfaces and Polymorphism
+
+This document explains the concepts of interfaces and polymorphism in object-oriented programming, with examples in Go (Golang). 
+
+## Table of Contents
+- [Interfaces](#interfaces)
+- [Polymorphism](#polymorphism)
+- [Examples](#examples)
+
+## Interfaces
+
+In Go, an interface is defined as a set of method signatures. A type implements an interface by implementing these methods.
+
+- **Purpose**: To enforce a contract on types, ensuring they have specific methods.
+- **Benefits**: Promotes abstraction, helps in achieving loose coupling, and aids in testing.
+
+### Example of an Interface in Go
+
+```go
+// Shape interface defines methods for area and perimeter
+type Shape interface {
+    Area() float64
+    Perimeter() float64
+}
+
+Polymorphism
+Polymorphism in Go allows objects of different types to be treated as objects of a common interface. It's achieved through:
+
+Method Implementation: When a type implements all methods of an interface, it can be used wherever that interface is expected.
+
+Example of Polymorphism
+go
+// Rectangle implements Shape
+type Rectangle struct {
+    width, height float64
+}
+
+func (r Rectangle) Area() float64 {
+    // Calculate and return the area of the rectangle
+    return r.width * r.height
+}
+
+func (r Rectangle) Perimeter() float64 {
+    // Calculate and return the perimeter of the rectangle
+    return 2 * (r.width + r.height)
+}
+
+// Circle implements Shape
+type Circle struct {
+    radius float64
+}
+
+func (c Circle) Area() float64 {
+    // Calculate and return the area of the circle
+    return 3.14 * c.radius * c.radius
+}
+
+func (c Circle) Perimeter() float64 {
+    // Calculate and return the circumference of the circle
+    return 2 * 3.14 * c.radius
+}
+
+// Polymorphic behavior
+func main() {
+    shapes := []Shape{Rectangle{2, 3}, Circle{5}}
+    for _, shape := range shapes {
+        // Demonstrate polymorphism by calling methods on different shapes
+        fmt.Printf("Area: %.2f, Perimeter: %.2f\n", shape.Area(), shape.Perimeter())
+    }
+}
+
+Examples
+Here we'll see how interfaces and polymorphism work together:
+
+go
+// Function to print shape info, showcasing polymorphism
+func printShapeInfo(s Shape) {
+    // Print information about the given shape
+    fmt.Printf("Shape type: %T\n", s)
+    fmt.Printf("Area: %.2f\n", s.Area())
+    fmt.Printf("Perimeter: %.2f\n", s.Perimeter())
+}
+
+func main() {
+    shapes := []Shape{Rectangle{2, 3}, Circle{5}}
+    for _, shape := range shapes {
+        // Call the function with different shape objects
+        printShapeInfo(shape)
+    }
+}
