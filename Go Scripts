@@ -1,0 +1,16 @@
+// 1) Write a Go program to read an environment variable
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	value := os.Getenv("MY_NAME")  //We used OS package 
+	if value == "" {
+		fmt.Println("not set ")
+	} else {
+	  fmt.Println(value)
+	}
+}
