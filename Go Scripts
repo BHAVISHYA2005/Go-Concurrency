@@ -14,3 +14,51 @@ func main() {
 	  fmt.Println(value)
 	}
 }
+
+// 2) APP_ENV & APP_PORT
+package main 
+
+import (
+  "fmt"
+  "os"
+  )
+func main(){
+  value1 := os.Getenv("APP_ENV")
+  value2 := os.Getenv("APP_PORT")
+  if value2 == "" || value1 == "" {
+    fmt.Println("ERROR: required environment variables not set")
+  } else {
+    fmt.Printf("Running in %s mode on port %s\n, value1, value2")
+  }
+
+
+// 3) Add a dafualt value 
+package main
+
+import (
+    "fmt"
+    "os"
+)
+
+func main() {
+    appEnv := os.Getenv("APP_ENV")
+    appPort := os.Getenv("APP_PORT")
+
+    // APP_ENV is required
+    if appEnv == "" {
+        fmt.Println("ERROR: required environment variables not set")
+        return
+    }
+
+    // APP_PORT has a default
+    if appPort == "" {
+        appPort = "8080"
+    }
+
+    // Print final output
+    fmt.Printf("Running in %s mode on port %s\n", appEnv, appPort)
+}
+
+// 4) 
+
+
